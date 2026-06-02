@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<title>Варіант 2 PRO</title>
+
+<style>
+body {
+    background: linear-gradient(135deg, #0a0a0a, #1a0000);
+    color: white;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    padding: 30px;
+}
+
+.container {
+    background: rgba(0,0,0,0.7);
+    border: 1px solid #ff0033;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 0 20px #ff0033;
+    width: 400px;
+    margin: auto;
+}
+
+#text {
+    font-size: 22px;
+    margin-bottom: 20px;
+    transition: 0.3s;
+}
+
+.controls {
+    margin: 10px 0;
+}
+
+input, button {
+    margin: 5px;
+    padding: 10px;
+    border: none;
+    outline: none;
+    border-radius: 8px;
+}
+
+button {
+    background: #ff0033;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 0 10px #ff0033;
+}
+
+button:hover {
+    background: black;
+    color: #ff0033;
+}
+
+.dark {
+    background: black !important;
+    color: #00ffcc !important;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Налаштування стилю</h2>
+
+<p id="text">Live is beautyful</p>
+
+<div class="controls">
+<label>Колір тексту:</label>
+<input type="color" id="textColor">
+</div>
+
+<div class="controls">
+<label>Фон:</label>
+<input type="color" id="bgColor">
+</div>
+
+<div class="controls">
+<label>Розмір:</label>
+<input type="range" id="fontSize" min="12" max="50">
+<span id="sizeValue">22px</span>
+</div>
+
+<div class="controls">
+<button onclick="toggleBold()">B</button>
+<button onclick="toggleItalic()">I</button>
+<button onclick="toggleUnderline()">U</button>
+</div>
+
+<div class="controls">
+<button onclick="toggleText()">Показати/Сховати</button>
+<button onclick="toggleDark()">Dark Mode</button>
+<button onclick="reset()">Скинути</button>
+</div>
+
+</div>
+
+<script>
+const text = document.getElementById("text");
+const sizeValue = document.getElementById("sizeValue");
+
+document.getElementById("textColor").oninput = e => {
+    text.style.color = e.target.value;
+};
+
+document.getElementById("bgColor").oninput = e => {
+    document.body.style.background = e.target.value;
+};
+
+document.getElementById("fontSize").oninput = e => {
+    text.style.fontSize = e.target.value + "px";
+    sizeValue.textContent = e.target.value + "px";
+};
+
+function toggleBold() {
+    text.style.fontWeight = text.style.fontWeight === "bold" ? "normal" : "bold";
+}
+
+function toggleItalic() {
+    text.style.fontStyle = text.style.fontStyle === "italic" ? "normal" : "italic";
+}
+
+function toggleUnderline() {
+    text.style.textDecoration = text.style.textDecoration === "underline" ? "none" : "underline";
+}
+
+function toggleText() {
+    text.style.display = text.style.display === "none" ? "block" : "none";
+}
+
+function toggleDark() {
+    document.body.classList.toggle("dark");
+}
+
+function reset() {
+    text.removeAttribute("style");
+    document.body.removeAttribute("style");
+    document.body.classList.remove("dark");
+    sizeValue.textContent = "22px";
+}
+</script>
+
+</body>
+</html>

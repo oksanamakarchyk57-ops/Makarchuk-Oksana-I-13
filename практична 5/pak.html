@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<title>Таймер PRO</title>
+
+<style>
+body {
+    background: radial-gradient(circle, #0a0a0a, #000000);
+    color: #d4ff00;
+    font-family: "Courier New", monospace;
+    text-align: center;
+    padding-top: 80px;
+}
+
+.container {
+    display: inline-block;
+    padding: 30px;
+    border: 1px solid #ddff00;
+    border-radius: 15px;
+    box-shadow: 0 0 20px #d0ff00, 0 0 40px #e1ff00;
+    background: rgba(0,0,0,0.8);
+}
+
+h1 {
+    font-size: 50px;
+    text-shadow: 0 0 20px #eeff00, 0 0 40px #e5ff00;
+}
+
+input {
+    padding: 12px;
+    margin: 10px;
+    border: 1px solid #e1ff00;
+    background: black;
+    color: #e5ff00;
+    outline: none;
+    box-shadow: 0 0 10px #d9ff00;
+    text-align: center;
+}
+
+.buttons button {
+    padding: 10px 15px;
+    margin: 8px;
+    border: none;
+    background: #d4ff00;
+    color: black;
+    cursor: pointer;
+    font-weight: bold;
+    box-shadow: 0 0 10px #ffee00;
+    transition: 0.3s;
+}
+
+.buttons button:hover {
+    background: black;
+    color: #eaff00;
+    box-shadow: 0 0 20px #fbff00;
+}
+
+#display {
+    font-size: 60px;
+    margin: 20px 0;
+    text-shadow: 0 0 20px #eeff00, 0 0 40px #d4ff00;
+}
+
+.message {
+    margin-top: 15px;
+    font-size: 18px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>⏱TIMER⏱</h1>
+
+<input type="number" id="time" placeholder="Введи секунди">
+
+<div id="display">0</div>
+
+<div class="buttons">
+<button onclick="start()">Старт</button>
+<button onclick="pause()">Пауза</button>
+<button onclick="addTime()">+5</button>
+<button onclick="minusTime()">-5</button>
+<button onclick="reset()">Скинути</button>
+</div>
+
+<div class="message" id="msg"></div>
+
+</div>
+
+<script>
+let t = 0;
+let interval;
+
+function updateDisplay() {
+    document.getElementById("display").textContent = t;
+}
+
+function start() {
+    const inputVal = +document.getElementById("time").value;
+
+    if (inputVal > 0) t = inputVal;
+
+    if (t <= 0) {
+        msg.textContent = "Введи час!";
+        return;
+    }
+
+    clearInterval(interval);
+
+    interval = setInterval(() => {
+        if (t <= 0) {
+            clearInterval(interval);
+            msg.textContent = "Час вийшов!";
+            return;
+        }
+
+        t--;
+        updateDisplay();
+    }, 1000);
+
+    msg.textContent = "▶ Таймер запущено";
+}
+
+function pause() {
+    clearInterval(interval);
+    msg.textContent = "⏸ Пауза";
+}
+
+function addTime() {
+    t += 5;
+    updateDisplay();
+}
+
+function minusTime() {
+    t = Math.max(0, t - 5);
+    updateDisplay();
+}
+
+function reset() {
+    clearInterval(interval);
+    t = 0;
+    updateDisplay();
+    msg.textContent = "⟲ Скинуто";
+}
+
+document.addEventListener("keydown", e => {
+    if (e.key === "Enter") start();
+});
+</script>
+
+</body>
+</html>
