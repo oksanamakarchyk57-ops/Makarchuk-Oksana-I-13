@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<title>Async Dashboard UI</title>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+
+body {
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    color:#f0f0f0;
+
+    background: url('https://i.pinimg.com/736x/4b/a2/8d/4ba28d0c797ac925e1eb520fefac5b67.jpg') no-repeat center center/cover;
+}
+
+.app {
+    width:90%;
+    max-width:900px;
+    padding:20px;
+}
+
+.card {
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(12px);
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+}
+
+h1 {
+    font-size:1.8rem;
+    text-align:center;
+    margin-bottom:25px;
+    color:#fff;
+    text-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+button {
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:12px;
+    background: linear-gradient(90deg,#a869b8,#5f3669,#6366f1);
+    background-size: 200% 100%;
+    color:#fff;
+    font-weight:bold;
+    font-size:16px;
+    cursor:pointer;
+    transition:0.5s;
+}
+
+button:hover {
+    background-position: 100% 0;
+    box-shadow:0 6px 20px rgba(133, 22, 158, 0.6);
+}
+
+#log {
+    margin-top:20px;
+    background: rgba(255,255,255,0.05);
+    border-radius:12px;
+    padding:15px;
+    height:300px;
+    overflow-y:auto;
+    font-family: monospace;
+    border:1px solid rgba(255,255,255,0.2);
+}
+
+.log-item {
+    margin:5px 0;
+    padding:6px 10px;
+    border-radius:8px;
+    transition:0.2s;
+}
+
+.success { background: rgba(34,197,94,0.2); border-left:4px solid #10b981; }
+.error { background: rgba(239,68,68,0.2); border-left:4px solid #ef4444; }
+.retry { background: rgba(251,191,36,0.2); border-left:4px solid #f59e0b; }
+</style>
+</head>
+<body>
+
+<div class="app">
+    <div class="card">
+        <h1>Async Dashboard Fetch</h1>
+        <button onclick="fetchAllData(urls)">Let's gooo!</button>
+        <div id="log"></div>
+    </div>
+</div>
+
+<script>
+const urls = [
+    "https://jsonplaceholder.typicode.com/todos/1",
+    "https://jsonplaceholder.typicode.com/todos/2",
+    "https://jsonplaceholder.typicode.com/todos/3",
+    "https://jsonplaceholder.typicode.com/todos/4",
+    "https://jsonplaceholder.typicode.com/todos/5"
+];
+
+function log(message, type="") {
+    const div = document.createElement("div");
+    div.className = "log-item " + type;
+    div.textContent = message;
+    document.getElementById("log").appendChild(div);
+    div.scrollIntoView({ behavior: "smooth" });
+}
+
+function fetchData(url){
+    return new Promise((resolve,reject)=>{
+        fetch(url)
+        .then(res=>{
+            if(Math.random()<0.25) reject("Помилка при завантаженні " + url);
+            else resolve("Успішно: " + url);
+        })
+        .catch(()=>reject("Помилка fetch " + url));
+    });
+}
+
+async function fetchAllData(urls){
+    document.getElementById("log").innerHTML="";
+    log("🔵Початок запитів...", "success");
+
+    let results = await Promise.allSettled(urls.map(url=>fetchData(url)));
+
+    for(let i=0;i<results.length;i++){
+        if(results[i].status==="fulfilled"){
+            log(results[i].value,"success");
+        } else {
+            log(results[i].reason,"error");
+            log("⏳ Повторна спроба через 1 секунду...","retry");
+            try{
+                const retry = await new Promise(resolve=>{
+                    setTimeout(()=>{
+                        resolve(fetchData(urls[i]));
+                    },1000);
+                });
+                const val = await retry;
+                log(val+" ✅ після повтору","success");
+            } catch(err){
+                log(err+" ❌ після повтору","error");
+            }
+        }
+    }
+
+    log("🎉 Завершено всі запити!","success");
+}
+</script>
+
+</body>
+</html>
