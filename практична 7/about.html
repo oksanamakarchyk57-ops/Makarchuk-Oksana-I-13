@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<title>User Form</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+body {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: 0.6s ease;
+    overflow: hidden;
+    position: relative;
+}
+
+body.light {
+    background: url('https://i.pinimg.com/736x/c3/32/e4/c332e44ecf6f3d8783e8ecc72808d210.jpg') no-repeat center center/cover;
+}
+
+body.dark {
+    background: url('https://i.pinimg.com/1200x/11/9c/c3/119cc38ddae35b077b1b8358f4ff19ee.jpg') no-repeat center center/cover;
+}
+
+body.light, body.dark {
+    animation: zoomBg 20s ease-in-out infinite alternate;
+}
+
+@keyframes zoomBg {
+    from { background-size: 100%; }
+    to { background-size: 115%; }
+}
+
+body::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transition: 0.6s;
+}
+
+body.light::after {
+    background: rgba(255,255,255,0.3);
+}
+
+body.dark::after {
+    background: rgba(0,0,0,0.55);
+}
+
+.card {
+    border-radius: 25px;
+    padding: 30px;
+    width: 340px;
+    backdrop-filter: blur(20px);
+    background: rgba(255,255,255,0.2);
+    transition: 0.4s;
+    z-index: 1;
+}
+
+body.dark .card {
+    background: rgba(25, 41, 80, 0.5);
+}
+
+.card {
+    animation: fadeIn 0.7s ease;
+}
+
+@keyframes fadeIn {
+    from {opacity:0; transform: translateY(20px);}
+    to {opacity:1; transform: translateY(0);}
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+input {
+    width: 100%;
+    margin: 10px 0;
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    outline: none;
+    transition: 0.3s;
+}
+
+body.light input {
+    background: rgba(255,255,255,0.8);
+}
+
+body.dark input {
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+}
+
+input:focus {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(99,102,241,0.7);
+}
+
+button {
+    width: 100%;
+    margin-top: 10px;
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+button:hover {
+    transform: scale(1.05);
+}
+
+.btn-main {
+    background: linear-gradient(135deg, #3e3e47, #5d7a80);
+    color: rgb(255, 255, 255);
+}
+
+.btn-main:hover {
+    box-shadow: 0 0 25px rgba(24, 26, 99, 0.8);
+}
+
+.btn-clear {
+    background: linear-gradient(135deg, #a93232, #7c0d0d);
+    color: white;
+}
+
+.btn-theme {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+
+    width: 42px;
+    height: 42px;
+
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 18px;
+
+    backdrop-filter: blur(12px);
+    background: rgba(130, 79, 79, 0.15);
+
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    transition: 0.3s;
+    z-index: 10;
+}
+
+.btn-theme:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 20px rgba(99,102,241,0.8);
+}
+
+body.dark .btn-theme {
+    background: rgba(6, 22, 60, 0.6);
+}
+
+.profile {
+    text-align: center;
+}
+
+.hidden {
+    display: none;
+}
+</style>
+</head>
+
+<body class="light">
+
+<button class="btn-theme" onclick="toggleTheme()" id="themeBtn">🌙</button>
+
+<div class="card">
+
+<div id="formBlock">
+<h2>Реєстрація</h2>
+<input type="text" id="name" placeholder="Ім'я">
+<input type="email" id="email" placeholder="Email">
+<input type="tel" id="phone" placeholder="Телефон">
+<input type="password" id="password" placeholder="Пароль">
+
+<button class="btn-main" onclick="register()">Зареєструватись</button>
+<button class="btn-main" onclick="login()">Увійти</button>
+<button class="btn-clear" onclick="clearData()">Очистити</button>
+</div>
+
+<div id="profileBlock" class="profile hidden">
+<h2>Профіль</h2>
+<p id="userInfo"></p>
+
+<input type="text" id="editName" placeholder="Нове ім'я">
+<input type="tel" id="editPhone" placeholder="Новий телефон">
+
+<button class="btn-main" onclick="updateProfile()">Зберегти зміни</button>
+<button class="btn-clear" onclick="logout()">Вийти</button>
+</div>
+
+</div>
+
+<script>
+document.querySelectorAll("input").forEach(input => {
+    input.addEventListener("input", saveForm);
+});
+
+function saveForm() {
+    const data = {
+        name: name.value,
+        email: email.value,
+        phone: phone.value,
+        password: password.value
+    };
+    localStorage.setItem("formData", JSON.stringify(data));
+}
+
+window.onload = function() {
+    const data = JSON.parse(localStorage.getItem("formData"));
+    if (data) {
+        name.value = data.name || "";
+        email.value = data.email || "";
+        phone.value = data.phone || "";
+        password.value = data.password || "";
+    }
+
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (user) showProfile(user);
+
+    const theme = localStorage.getItem("theme") || "light";
+    document.body.className = theme;
+    updateThemeButton();
+};
+
+function register() {
+    const user = {
+        name: name.value,
+        email: email.value,
+        phone: phone.value,
+        password: password.value
+    };
+    localStorage.setItem("user", JSON.stringify(user));
+    alert("Зареєстровано!");
+}
+
+function login() {
+    const stored = JSON.parse(localStorage.getItem("user"));
+
+    if (stored && email.value === stored.email && password.value === stored.password) {
+        showProfile(stored);
+    } else {
+        alert("Невірні дані!");
+    }
+}
+
+function showProfile(user) {
+    formBlock.classList.add("hidden");
+    profileBlock.classList.remove("hidden");
+
+    userInfo.innerText = `
+Ім'я: ${user.name}
+Email: ${user.email}
+Телефон: ${user.phone}
+    `;
+}
+
+function updateProfile() {
+    let user = JSON.parse(localStorage.getItem("user"));
+
+    if (editName.value) user.name = editName.value;
+    if (editPhone.value) user.phone = editPhone.value;
+
+    localStorage.setItem("user", JSON.stringify(user));
+    showProfile(user);
+}
+
+function logout() {
+    location.reload();
+}
+
+function clearData() {
+    localStorage.clear();
+    location.reload();
+}
+
+function toggleTheme() {
+    const isLight = document.body.classList.contains("light");
+    const newTheme = isLight ? "dark" : "light";
+
+    document.body.className = newTheme;
+    localStorage.setItem("theme", newTheme);
+
+    updateThemeButton();
+}
+
+function updateThemeButton() {
+    const btn = document.getElementById("themeBtn");
+
+    if (document.body.classList.contains("dark")) {
+        btn.innerHTML = "☀️";
+    } else {
+        btn.innerHTML = "🌙";
+    }
+}
+</script>
+
+</body>
+</html>
