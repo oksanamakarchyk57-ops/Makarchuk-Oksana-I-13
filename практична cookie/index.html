@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Система входу з обмеженням спроб</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        .page { display: none; }
+        .page.active { display: block; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+
+    <div id="app" class="w-full max-w-md">
+        
+        <div id="login-page" class="page bg-white p-8 rounded-lg shadow-md">
+            <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Вхід у систему</h2>
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Логін</label>
+                    <input type="text" id="username" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Пароль</label>
+                    <input type="password" id="password" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
+                </div>
+                <div id="login-error" class="text-red-500 text-sm hidden">Неправильний логін або пароль!</div>
+                <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200">Увійти</button>
+            </form>
+        </div>
+
+        <div id="secure-page" class="page bg-white p-8 rounded-lg shadow-md text-center">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">Вітаємо, адміністраторе!</h2>
+            <p class="text-gray-600 mb-6">Ви успішно увійшли в захищену зону.</p>
+            <button id="logout-btn" class="bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 transition duration-200">Вийти</button>
+        </div>
+
+        <div id="blocked-page" class="page bg-white p-8 rounded-lg shadow-md text-center">
+            <div class="text-red-500 mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+            </div>
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">Доступ заблоковано</h2>
+            <p class="text-gray-600">Ви заблоковані на 5 хвилин через неправильні спроби входу.</p>
+            <p id="timer" class="mt-4 font-mono text-lg text-red-600"></p>
+        </div>
+
+    </div>
+
+    <script>
+        const AUTH_CONFIG = {
+            username: 'admin',
+            password: '1234',
+            maxAttempts: 3,
+            blockTimeMs: 5 * 60 * 1000 
+        };
+
+        const store = {
+            set: (key, val) => localStorage.setItem(key, JSON.stringify(val)),
+            get: (key) => JSON.parse(localStorage.getItem(key)),
+            remove: (key) => localStorage.removeItem(key)
+        };
+
+        function route() {
+            const session = store.get('session');
+            const blockedUntil = store.get('blockedUntil');
+            const now = Date.now();
+
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+
+            if (blockedUntil && now < blockedUntil) {
+                showBlockedPage(blockedUntil);
+                return;
+            }
+
+            if (session) {
+                document.getElementById('secure-page').classList.add('active');
+                return;
+            }
+
+            document.getElementById('login-page').classList.add('active');
+        }
+
+        function showBlockedPage(until) {
+            document.getElementById('blocked-page').classList.add('active');
+            
+            const updateTimer = () => {
+                const remaining = Math.ceil((until - Date.now()) / 1000);
+                if (remaining <= 0) {
+                    store.remove('blockedUntil');
+                    store.set('attempts', 0);
+                    route();
+                } else {
+                    const mins = Math.floor(remaining / 60);
+                    const secs = remaining % 60;
+                    document.getElementById('timer').innerText = `Залишилося: ${mins}:${secs.toString().padStart(2, '0')}`;
+                    setTimeout(updateTimer, 1000);
+                }
+            };
+            updateTimer();
+        }
+
+        document.getElementById('login-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+            const errorEl = document.getElementById('login-error');
+            
+            let attempts = store.get('attempts') || 0;
+
+            if (user === AUTH_CONFIG.username && pass === AUTH_CONFIG.password) {
+                store.set('session', { user: user });
+                store.set('attempts', 0);
+                errorEl.classList.add('hidden');
+                route();
+            } else {
+                attempts++;
+                store.set('attempts', attempts);
+                errorEl.classList.remove('hidden');
+
+                if (attempts >= AUTH_CONFIG.maxAttempts) {
+                    const blockedUntil = Date.now() + AUTH_CONFIG.blockTimeMs;
+                    store.set('blockedUntil', blockedUntil);
+                    route();
+                }
+            }
+        });
+
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            store.remove('session');
+            route();
+        });
+
+        route();
+    </script>
+</body>
+</html>
